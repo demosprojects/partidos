@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partidos del Día</title>
+  <link rel="stylesheet" href="diseñar.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <h1>Agenda de Flyers</h1>
+  <ul id="listaPartidos"></ul>
+
+
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiDOSote8kJ4M6nqFR96H5o7QTvQgNwPU",
+      authDomain: "partidos-5ee56.firebaseapp.com",
+      projectId: "partidos-5ee56",
+      storageBucket: "partidos-5ee56.appspot.com",
+      messagingSenderId: "125765219921",
+      appId: "1:125765219921:web:828c66051e6c04e5982a70"
+    };
+
+    // Inicializamos Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const listaPartidos = document.getElementById('listaPartidos');
+
+    // Mostrar partidos con el nuevo diseño
+    db.collection("partidos").orderBy("hora").onSnapshot((querySnapshot) => {
+      listaPartidos.innerHTML = "";
+      querySnapshot.forEach((doc) => {
+        const p = doc.data();
+        const li = document.createElement('li');
+        
+        li.innerHTML = `
+          <div class="tarjeta">🟨</div>
+  <div class="partido-info">
+    <div class="info-superior">
+      <div class="hora-partido">${p.hora}</div>
+      <div class="competencia">${p.competencia}</div>
+    </div>
+    <div class="equipos">${p.equipos}</div>
+  </div>
+        `;
+        
+        listaPartidos.appendChild(li);
+      });
+    });
+
+    // Efecto interactivo con la pelota
+    const ball = document.querySelector('.ball');
+    ball.addEventListener('click', () => {
+      ball.style.transform = 'scale(1.5)';
+      ball.style.animation = 'none';
+      setTimeout(() => {
+        ball.style.transform = 'scale(1)';
+        ball.style.animation = 'bounce 2s infinite';
+      }, 500);
+      
+      // Hacer que todos los partidos "salten"
+      document.querySelectorAll('#listaPartidos li').forEach(li => {
+        li.style.transform = 'translateY(-10px)';
+        setTimeout(() => {
+          li.style.transform = 'translateY(0)';
+        }, 300);
+      });
+    });
+  </script>
+</body>
+</html>

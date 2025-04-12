@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Agenda Deportiva</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.11/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Agregar partidos</h1>
+
+  <form id="formulario">
+    <label>Competencia:</label><br>
+    <input type="text" id="competencia" placeholder="Ej: Copa Libertadores" required><br>
+
+    <label>Hora:</label><br>
+    <input type="time" id="hora" required><br>
+
+    <label>Equipos:</label><br>
+    <input type="text" id="equipos" placeholder="Ej: Boca vs River" required><br><br>
+
+    <button type="submit">Agregar Partido</button>
+  </form>
+
+  <h2>Partidos del Día</h2>
+  <ul id="listaPartidos"></ul>
+
+  <button id="eliminarTodo">Eliminar Todos los Partidos</button>
+
+  <script>
+    // Configuración de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyCiDOSote8kJ4M6nqFR96H5o7QTvQgNwPU",
+      authDomain: "partidos-5ee56.firebaseapp.com",
+      projectId: "partidos-5ee56",
+      storageBucket: "partidos-5ee56.appspot.com",
+      messagingSenderId: "125765219921",
+      appId: "1:125765219921:web:828c66051e6c04e5982a70"
+    };
+
+    // Inicializamos Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const formulario = document.getElementById('formulario');
+    const listaPartidos = document.getElementById('listaPartidos');
+    const eliminarTodo = document.getElementById('eliminarTodo');
+
+    // Agregar partido
+    formulario.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const competencia = document.getElementById('competencia').value;
+      const hora = document.getElementById('hora').value;
+      const equipos = document.getElementById('equipos').value;
+
+      // Agregar a Firestore
+      db.collection("partidos").add({
+        competencia,
+        hora,
+        equipos
+      }).then(() => {
+        formulario.reset();
+        mostrarPartidos(); // Actualizamos la lista después de agregar
+      });
+    });
+
+    // Mostrar partidos
+    function mostrarPartidos() {
+      db.collection("partidos").orderBy("hora").get().then((querySnapshot) => {
+        listaPartidos.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+          const p = doc.data();
+          const li = document.createElement('li');
+          li.textContent = `${p.hora} - ${p.equipos} (${p.competencia})`;
+
+          const btnEliminar = document.createElement('button');
+          btnEliminar.textContent = 'Eliminar';
+          btnEliminar.onclick = () => eliminarPartido(doc.id);
+
+          li.appendChild(btnEliminar);
+          listaPartidos.appendChild(li);
+        });
+      });
+    }
+
+    // Eliminar partido
+    function eliminarPartido(id) {
+      if (confirm("¿Estás seguro que quieres eliminar este partido?")) {
+        db.collection("partidos").doc(id).delete().then(() => {
+          mostrarPartidos(); // Actualizamos la lista después de eliminar
+        });
+      }
+    }
+
+    // Eliminar todos los partidos
+    eliminarTodo.addEventListener('click', () => {
+      if (confirm("¿Estás seguro que quieres eliminar TODOS los partidos?")) {
+        db.collection("partidos").get().then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+            doc.ref.delete();
+          });
+        }).then(() => {
+          mostrarPartidos(); // Actualizamos la lista después de eliminar todo
+        });
+      }
+    });
+
+    // Cargar partidos al inicio
+    mostrarPartidos();
+  </script>
+</body>
+</html>
